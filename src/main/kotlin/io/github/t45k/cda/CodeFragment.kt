@@ -3,10 +3,11 @@ package io.github.t45k.cda
 import java.io.File
 
 data class CodeFragment(
-    val path: File,
+    val id:Int,
+    val file: File,
     val startLine: Int,
     val endLine: Int,
-    val raw: String
+    val raw: String,
 ) {
     private lateinit var prettyPrintedText: List<Int>
     private lateinit var tokenSequence: List<Int>
