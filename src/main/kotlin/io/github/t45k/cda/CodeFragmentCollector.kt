@@ -14,7 +14,6 @@ import java.util.concurrent.atomic.AtomicInteger
 class CodeFragmentCollector() {
     fun collect(file: File): List<CodeFragment> =
         ASTParser.newParser(AST.JLS14)
-            .apply { this.setKind(ASTParser.K_STATEMENTS) }
             .apply { this.setSource(file.readText().toCharArray()) }
             .createAST(NullProgressMonitor())
             .let { astNode: ASTNode ->

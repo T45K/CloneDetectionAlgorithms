@@ -1,11 +1,11 @@
-package io.github.t45k.cda
+package io.github.t45k.cda.representaion
 
 import org.eclipse.jdt.core.ToolFactory
 import org.eclipse.jdt.core.compiler.IScanner
 import org.eclipse.jdt.core.compiler.ITerminalSymbols.*
 
-class Tokenizer(private val requireNormalization: Boolean = true) {
-    fun tokenize( raw: String): List<Int> =
+class TokenSequenceFactory(requireNormalization: Boolean = true) : RepresentationFactory<List<Int>>(requireNormalization) {
+    override fun create(raw: String): List<Int> =
         ToolFactory.createScanner(false, false, true, false)
             .apply { this.source = raw.toCharArray() }
             .let { scanner: IScanner ->
@@ -20,11 +20,12 @@ class Tokenizer(private val requireNormalization: Boolean = true) {
         if (tokenId.isTarget()) {
             0
         } else {
-            scanner.rawTokenSource.hashCode()
+            String(scanner.rawTokenSource).hashCode()
         }
 
     private fun Int.isTarget(): Boolean =
         if (requireNormalization) {
+            @Suppress("DEPRECATION")
             when (this) {
                 TokenNameIdentifier,
                 TokenNameCharacterLiteral,

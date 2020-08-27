@@ -14,12 +14,19 @@ class Type2 {
     public void method2(int j) {
         if (j % 15 == 0) {
             System.out.println("fizzbuzz");
-        } else if (j % 5 == 0) {
-            System.out.println("buzz");
-        } else if (j % 3 == 0) {
-            System.out.println("fizz");
-        } else {
-            System.out.println(j);
+            return;
         }
+
+        if (j % 3 == 0) {
+            System.out.println("fizz");
+            return;
+        }
+
+        if (j % 5 == 0) {
+            System.out.println("buzz");
+            return;
+        }
+
+        System.out.println(j);
     }
 }

@@ -1,4 +1,4 @@
-package io.github.t45k.cda
+package io.github.t45k.cda.representaion
 
 import org.eclipse.core.runtime.NullProgressMonitor
 import org.eclipse.jdt.core.dom.AST
@@ -25,86 +25,87 @@ import org.eclipse.jdt.core.dom.VariableDeclarationStatement
 import org.eclipse.jdt.core.dom.WhileStatement
 import org.eclipse.jdt.core.dom.YieldStatement
 
-class PrettyPrinter(private val raw: String, private val normalize: Boolean = true) {
+class PrettyPrintFactory(requireNormalization: Boolean = true) : RepresentationFactory<List<Int>>(requireNormalization) {
 
-    fun prettyPrint(): List<Int> =
+    override fun create(raw: String): List<Int> =
         ASTParser.newParser(AST.JLS14)
             .apply { this.setKind(ASTParser.K_STATEMENTS) }
             .apply { this.setSource(raw.toCharArray()) }
             .createAST(NullProgressMonitor())
             .let { astNode: ASTNode ->
-                StatementVisitor(normalize)
+                StatementVisitor(requireNormalization)
                     .apply { astNode.accept(this) }
                     .prettyPrintedStatements
-            }.map { it.hashCode() }
+            }
+            .map { it.hashCode() }
             .toList()
 
     private class StatementVisitor(normalize: Boolean) : ASTVisitor() {
         val prettyPrintedStatements: MutableList<List<Int>> = mutableListOf()
-        private val tokenizer: Tokenizer = Tokenizer(normalize)
+        private val tokenSequenceFactory: TokenSequenceFactory = TokenSequenceFactory(normalize)
 
         override fun visit(node: AssertStatement?): Boolean {
-            prettyPrintedStatements.add(tokenizer.tokenize(node.toString()))
+            prettyPrintedStatements.add(tokenSequenceFactory.create(node.toString()))
             return super.visit(node)
         }
 
         override fun visit(node: BreakStatement?): Boolean {
-            prettyPrintedStatements.add(tokenizer.tokenize(node.toString()))
+            prettyPrintedStatements.add(tokenSequenceFactory.create(node.toString()))
             return super.visit(node)
         }
 
         override fun visit(node: ContinueStatement?): Boolean {
-            prettyPrintedStatements.add(tokenizer.tokenize(node.toString()))
+            prettyPrintedStatements.add(tokenSequenceFactory.create(node.toString()))
             return super.visit(node)
         }
 
         override fun visit(node: DoStatement?): Boolean {
-            prettyPrintedStatements.add(tokenizer.tokenize("do"))
+            prettyPrintedStatements.add(tokenSequenceFactory.create("do"))
             return super.visit(node)
         }
 
         override fun visit(node: EnhancedForStatement?): Boolean {
-            prettyPrintedStatements.add(tokenizer.tokenize("for ( ${node!!.parameter} : ${node.expression} )"))
+            prettyPrintedStatements.add(tokenSequenceFactory.create("for ( ${node!!.parameter} : ${node.expression} )"))
             return super.visit(node)
         }
 
         override fun visit(node: ExpressionStatement?): Boolean {
-            prettyPrintedStatements.add(tokenizer.tokenize(node.toString()))
+            prettyPrintedStatements.add(tokenSequenceFactory.create(node.toString()))
             return super.visit(node)
         }
 
         override fun visit(node: ForStatement?): Boolean {
-            prettyPrintedStatements.add(tokenizer.tokenize("for ( ${node!!.initializers()} ; ${node.expression} ; ${node.updaters()} )"))
+            prettyPrintedStatements.add(tokenSequenceFactory.create("for ( ${node!!.initializers()} ; ${node.expression} ; ${node.updaters()} )"))
             return super.visit(node)
         }
 
         override fun visit(node: IfStatement?): Boolean {
-            prettyPrintedStatements.add(tokenizer.tokenize("if ( ${node!!.expression} )"))
+            prettyPrintedStatements.add(tokenSequenceFactory.create("if ( ${node!!.expression} )"))
             return super.visit(node)
         }
 
         override fun visit(node: ReturnStatement?): Boolean {
-            prettyPrintedStatements.add(tokenizer.tokenize(node.toString()))
+            prettyPrintedStatements.add(tokenSequenceFactory.create(node.toString()))
             return super.visit(node)
         }
 
         override fun visit(node: SwitchStatement?): Boolean {
-            prettyPrintedStatements.add(tokenizer.tokenize("switch ( ${node!!.expression} )"))
+            prettyPrintedStatements.add(tokenSequenceFactory.create("switch ( ${node!!.expression} )"))
             return super.visit(node)
         }
 
         override fun visit(node: SynchronizedStatement?): Boolean {
-            prettyPrintedStatements.add(tokenizer.tokenize("synchronized"))
+            prettyPrintedStatements.add(tokenSequenceFactory.create("synchronized"))
             return super.visit(node)
         }
 
         override fun visit(node: ThrowStatement?): Boolean {
-            prettyPrintedStatements.add(tokenizer.tokenize(node.toString()))
+            prettyPrintedStatements.add(tokenSequenceFactory.create(node.toString()))
             return super.visit(node)
         }
 
         override fun visit(node: TryStatement?): Boolean {
-            prettyPrintedStatements.add(tokenizer.tokenize("try ( ${
+            prettyPrintedStatements.add(tokenSequenceFactory.create("try ( ${
                 node!!.resources().joinToString(" , ") { it.toString() }
             } )"))
 
@@ -113,7 +114,7 @@ class PrettyPrinter(private val raw: String, private val normalize: Boolean = tr
             node.catchClauses().forEach { (it as CatchClause).accept(this) }
 
             if (node.finally != null) {
-                prettyPrintedStatements.add(tokenizer.tokenize("finally"))
+                prettyPrintedStatements.add(tokenSequenceFactory.create("finally"))
                 node.finally.statements().forEach { (it as Statement).accept(this) }
             }
 
@@ -121,7 +122,7 @@ class PrettyPrinter(private val raw: String, private val normalize: Boolean = tr
         }
 
         override fun visit(node: CatchClause?): Boolean {
-            prettyPrintedStatements.add(tokenizer.tokenize("catch ( ${node!!.exception} )"))
+            prettyPrintedStatements.add(tokenSequenceFactory.create("catch ( ${node!!.exception} )"))
             return super.visit(node)
         }
 
@@ -131,17 +132,17 @@ class PrettyPrinter(private val raw: String, private val normalize: Boolean = tr
         }
 
         override fun visit(node: VariableDeclarationStatement?): Boolean {
-            prettyPrintedStatements.add(tokenizer.tokenize(node.toString()))
+            prettyPrintedStatements.add(tokenSequenceFactory.create(node.toString()))
             return super.visit(node)
         }
 
         override fun visit(node: WhileStatement?): Boolean {
-            prettyPrintedStatements.add(tokenizer.tokenize("while ( ${node!!.expression} )"))
+            prettyPrintedStatements.add(tokenSequenceFactory.create("while ( ${node!!.expression} )"))
             return super.visit(node)
         }
 
         override fun visit(node: YieldStatement?): Boolean {
-            prettyPrintedStatements.add(tokenizer.tokenize(node.toString()))
+            prettyPrintedStatements.add(tokenSequenceFactory.create(node.toString()))
             return super.visit(node)
         }
     }
