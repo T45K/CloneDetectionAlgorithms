@@ -1,5 +1,6 @@
 package io.github.t45k.cda
 
+import io.github.t45k.cda.representaion.BugOfTokenFactory
 import io.github.t45k.cda.representaion.PrettyPrintFactory
 import io.github.t45k.cda.representaion.TokenSequenceFactory
 import java.io.File
@@ -34,6 +35,6 @@ data class CodeFragment(
         if (::bugOfToken.isInitialized) {
             bugOfToken
         } else {
-            BugOfToken().create(raw)
+            BugOfTokenFactory().create(raw)
         }
 }

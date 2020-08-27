@@ -11,7 +11,7 @@ import org.eclipse.jdt.core.dom.MethodDeclaration
 import java.io.File
 import java.util.concurrent.atomic.AtomicInteger
 
-class CodeFragmentCollector() {
+class CodeFragmentCollector {
     fun collect(file: File): List<CodeFragment> =
         ASTParser.newParser(AST.JLS14)
             .apply { this.setSource(file.readText().toCharArray()) }

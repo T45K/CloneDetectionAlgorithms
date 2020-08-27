@@ -4,7 +4,8 @@ import org.eclipse.jdt.core.ToolFactory
 import org.eclipse.jdt.core.compiler.IScanner
 import org.eclipse.jdt.core.compiler.ITerminalSymbols.*
 
-class TokenSequenceFactory(requireNormalization: Boolean = true) : RepresentationFactory<List<Int>>(requireNormalization) {
+class TokenSequenceFactory(requireNormalization: Boolean = true) :
+    RepresentationFactory<List<Int>>(requireNormalization) {
     override fun create(raw: String): List<Int> =
         ToolFactory.createScanner(false, false, true, false)
             .apply { this.source = raw.toCharArray() }

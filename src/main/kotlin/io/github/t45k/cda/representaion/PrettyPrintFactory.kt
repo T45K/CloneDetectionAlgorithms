@@ -25,7 +25,10 @@ import org.eclipse.jdt.core.dom.VariableDeclarationStatement
 import org.eclipse.jdt.core.dom.WhileStatement
 import org.eclipse.jdt.core.dom.YieldStatement
 
-class PrettyPrintFactory(requireNormalization: Boolean = true) : RepresentationFactory<List<Int>>(requireNormalization) {
+class PrettyPrintFactory(requireNormalization: Boolean = true) :
+    RepresentationFactory<List<Int>>(requireNormalization) {
+
+    private val tokenSequenceFactory: TokenSequenceFactory = TokenSequenceFactory()
 
     override fun create(raw: String): List<Int> =
         ASTParser.newParser(AST.JLS14)
@@ -33,88 +36,88 @@ class PrettyPrintFactory(requireNormalization: Boolean = true) : RepresentationF
             .apply { this.setSource(raw.toCharArray()) }
             .createAST(NullProgressMonitor())
             .let { astNode: ASTNode ->
-                StatementVisitor(requireNormalization)
+                StatementVisitor()
                     .apply { astNode.accept(this) }
                     .prettyPrintedStatements
             }
+            .map { tokenSequenceFactory.create(it) }
             .map { it.hashCode() }
             .toList()
 
-    private class StatementVisitor(normalize: Boolean) : ASTVisitor() {
-        val prettyPrintedStatements: MutableList<List<Int>> = mutableListOf()
-        private val tokenSequenceFactory: TokenSequenceFactory = TokenSequenceFactory(normalize)
+    private class StatementVisitor : ASTVisitor() {
+        val prettyPrintedStatements: MutableList<String> = mutableListOf()
 
         override fun visit(node: AssertStatement?): Boolean {
-            prettyPrintedStatements.add(tokenSequenceFactory.create(node.toString()))
+            prettyPrintedStatements.add(node.toString())
             return super.visit(node)
         }
 
         override fun visit(node: BreakStatement?): Boolean {
-            prettyPrintedStatements.add(tokenSequenceFactory.create(node.toString()))
+            prettyPrintedStatements.add(node.toString())
             return super.visit(node)
         }
 
         override fun visit(node: ContinueStatement?): Boolean {
-            prettyPrintedStatements.add(tokenSequenceFactory.create(node.toString()))
+            prettyPrintedStatements.add(node.toString())
             return super.visit(node)
         }
 
         override fun visit(node: DoStatement?): Boolean {
-            prettyPrintedStatements.add(tokenSequenceFactory.create("do"))
+            prettyPrintedStatements.add("do")
             return super.visit(node)
         }
 
         override fun visit(node: EnhancedForStatement?): Boolean {
-            prettyPrintedStatements.add(tokenSequenceFactory.create("for ( ${node!!.parameter} : ${node.expression} )"))
+            prettyPrintedStatements.add("for ( ${node!!.parameter} : ${node.expression} )")
             return super.visit(node)
         }
 
         override fun visit(node: ExpressionStatement?): Boolean {
-            prettyPrintedStatements.add(tokenSequenceFactory.create(node.toString()))
+            prettyPrintedStatements.add(node.toString())
             return super.visit(node)
         }
 
         override fun visit(node: ForStatement?): Boolean {
-            prettyPrintedStatements.add(tokenSequenceFactory.create("for ( ${node!!.initializers()} ; ${node.expression} ; ${node.updaters()} )"))
+            prettyPrintedStatements.add("for ( ${node!!.initializers()} ; ${node.expression} ; ${node.updaters()} )")
             return super.visit(node)
         }
 
         override fun visit(node: IfStatement?): Boolean {
-            prettyPrintedStatements.add(tokenSequenceFactory.create("if ( ${node!!.expression} )"))
+            prettyPrintedStatements.add("if ( ${node!!.expression} )")
             return super.visit(node)
         }
 
         override fun visit(node: ReturnStatement?): Boolean {
-            prettyPrintedStatements.add(tokenSequenceFactory.create(node.toString()))
+            prettyPrintedStatements.add(node.toString())
             return super.visit(node)
         }
 
         override fun visit(node: SwitchStatement?): Boolean {
-            prettyPrintedStatements.add(tokenSequenceFactory.create("switch ( ${node!!.expression} )"))
+            prettyPrintedStatements.add("switch ( ${node!!.expression} )")
             return super.visit(node)
         }
 
         override fun visit(node: SynchronizedStatement?): Boolean {
-            prettyPrintedStatements.add(tokenSequenceFactory.create("synchronized"))
+            prettyPrintedStatements.add("synchronized")
             return super.visit(node)
         }
 
         override fun visit(node: ThrowStatement?): Boolean {
-            prettyPrintedStatements.add(tokenSequenceFactory.create(node.toString()))
+            prettyPrintedStatements.add(node.toString())
             return super.visit(node)
         }
 
         override fun visit(node: TryStatement?): Boolean {
-            prettyPrintedStatements.add(tokenSequenceFactory.create("try ( ${
+            prettyPrintedStatements.add("try ( ${
                 node!!.resources().joinToString(" , ") { it.toString() }
-            } )"))
+            } )")
 
             node.body.accept(this)
 
             node.catchClauses().forEach { (it as CatchClause).accept(this) }
 
             if (node.finally != null) {
-                prettyPrintedStatements.add(tokenSequenceFactory.create("finally"))
+                prettyPrintedStatements.add("finally")
                 node.finally.statements().forEach { (it as Statement).accept(this) }
             }
 
@@ -122,7 +125,7 @@ class PrettyPrintFactory(requireNormalization: Boolean = true) : RepresentationF
         }
 
         override fun visit(node: CatchClause?): Boolean {
-            prettyPrintedStatements.add(tokenSequenceFactory.create("catch ( ${node!!.exception} )"))
+            prettyPrintedStatements.add("catch ( ${node!!.exception} )")
             return super.visit(node)
         }
 
@@ -132,17 +135,17 @@ class PrettyPrintFactory(requireNormalization: Boolean = true) : RepresentationF
         }
 
         override fun visit(node: VariableDeclarationStatement?): Boolean {
-            prettyPrintedStatements.add(tokenSequenceFactory.create(node.toString()))
+            prettyPrintedStatements.add(node.toString())
             return super.visit(node)
         }
 
         override fun visit(node: WhileStatement?): Boolean {
-            prettyPrintedStatements.add(tokenSequenceFactory.create("while ( ${node!!.expression} )"))
+            prettyPrintedStatements.add("while ( ${node!!.expression} )")
             return super.visit(node)
         }
 
         override fun visit(node: YieldStatement?): Boolean {
-            prettyPrintedStatements.add(tokenSequenceFactory.create(node.toString()))
+            prettyPrintedStatements.add(node.toString())
             return super.visit(node)
         }
     }
